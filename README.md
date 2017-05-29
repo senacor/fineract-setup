@@ -6,9 +6,10 @@ This guide provides instructions how to setup the Mifos/Fineract project in the 
 Note: Fineract and Mifos basically refer to the same project. Mifos is the name of the original project. Fineract is the project's name within apache (Apache Fineract); it is based on the Mifos code-base.
 
 The project can be found here:
-The idea: http://mifos.org/
-Mifos code-base: https://github.com/mifosio/
-Apache Fineract: http://fineract.apache.org/
+
+* The idea: http://mifos.org/
+* Mifos code-base: https://github.com/mifosio/
+* Apache Fineract: http://fineract.apache.org/
 
 It is quite complex to get the project running, as there are many dependencies to tools and libraries. Currently there is no complete setup guideline yet. That's why we decided to create a separate repo where we collect our setup experiences and provide guidelines for a complete setup from scratch. 
 
