@@ -84,13 +84,35 @@ Script is based on: https://store.docker.com/editions/community/docker-ce-server
 
 ### Deployment to docker
 
-IMPORTANT: Instructions not finished yet!
+#### Pull core service containers
 
-1. Retrieve docker containers: 
-  activemq 
-  eureka
-  mysql
-  cassandra 
+Fineract uses 2 databases: mariadb and cassandra. As several of the micro-services use these databases they have to run before starting the micro-services.
+
+Furthermore eureka (service registry) and activemq (messaging bus) are needed as global services.
+
+Pull the following docker containers: 
+  rmohr/activemq:5.13.2
+  netflixoss/eureka:1.3.1
+  mysql:5.7.17
+  cassandra:3.0
+
+Those are the core containers you need.
+
+Note: mariadb is a derrivat of mysql, thus you can use mysql (up to version 5.7.x) instead of mariadb. You can also use mariadb.
+
+#### Build micro-services docker containers
+
+scripts/build_all_docker_containers.sh
+
+Copy the script to your code folder and run it like this: ./build_all_docker_containers.sh mifosio
+
+Note: The parameter will define the name of the docker container.
+
+The script will generate a docker file for each micro-service and then automatically build a docker container using the generated docker file. The jar file(s) of the micro-service will be packed into the container.
+
+#### Startup core containers and compose micro-service containers
+
+IMPORTANT: Instructions not finished yet!
 
 ## Utilizing the AWS cloud
 
