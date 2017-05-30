@@ -124,6 +124,15 @@ chmod +x gradlew
 ./gradlew publishToMavenLocal
 cd ..
 
+# REM initialize identity
+git clone 'https://github.com/'$githubAccount'/identity.git'
+cd identity
+git remote add upstream https://github.com/mifosio/identity.git
+git checkout develop
+chmod +x gradlew
+./gradlew publishToMavenLocal
+cd ..
+
 # REM initialize permitted-feign-client
 git clone 'https://github.com/'$githubAccount'/permitted-feign-client.git'
 cd permitted-feign-client
@@ -140,16 +149,6 @@ git remote add upstream https://github.com/mifosio/provisioner.git
 git checkout develop
 chmod +x gradlew
 ./gradlew publishToMavenLocal
-cd ..
-
-# REM initialize identity
-git clone 'https://github.com/'$githubAccount'/identity.git'
-cd identity
-git remote add upstream https://github.com/mifosio/identity.git
-git checkout develop
-chmod +x gradlew
-./gradlew publishToMavenLocal
-
 cd ..
 
 # REM initialize rhythm
