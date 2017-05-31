@@ -1,5 +1,6 @@
 #!/bin/bash
 dockerTagPrefix=$1
+dockerTagVersion=$2
 
 port=8081
 
@@ -20,9 +21,14 @@ do
     echo 'EXPOSE '${port} >> Dockerfile
     echo 'ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]' >> Dockerfile
     echo ::::: Building docker container $ms
-    docker build -t $dockerTagPrefix/$ms . 
+    docker build -t $dockerTagPrefix/$ms:$dockerTagVersion . 
     cd ..
-
-    port=$(($port + 1))
-    echo $port
 done
+
+echo ::::: Baue App
+cd fims-web-app
+npm run build
+echo 'FROM nginx:1.11-alpine' > Dockerfile
+echo 'COPY dist /usr/share/nginx/html' >> Dockerfile
+docker build -t $dockerTagPrefix/fims-web-app:$dockerTagVersion .
+cd ..

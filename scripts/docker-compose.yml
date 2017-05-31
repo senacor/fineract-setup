@@ -1,0 +1,172 @@
+version: '2'
+
+services:
+  discovery:
+    image: bootcamp/discovery
+    container_name: discovery
+    command: java -jar app.jar 
+    environment:
+      - eureka.instance.preferIpAdress=true
+    ports:
+      - "8761:8761"
+    networks:
+      - fineract
+
+  cassandra:
+    image: cassandra:3.0.1
+    container_name: cassandra
+    ports:
+      - "9042:9042"
+    networks:
+      - fineract
+
+  mariadb:
+    image: mysql:5.7.18
+    container_name: mariadb
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql
+    ports:
+      - "3306:3306"
+    networks:
+        - fineract
+
+  activemq:
+    image: rmohr/activemq:latest
+    container_name: activemq
+    ports:
+      - "61616:61616"
+      - "8161:8161"
+      - "61614:61614"
+      - "61613:61613"
+    networks:
+      - fineract
+
+  identity:
+    build:
+      context: ../../identity
+    image: bootcamp/identity
+    container_name: identity
+    working_dir: /
+    ports:
+      - "8081:8081"
+    depends_on:
+        - mariadb
+        - cassandra
+        - activemq
+        - discovery
+    networks:
+        - fineract
+
+  provisioner:
+    build:
+      context: ../../provisioner
+    image: bootcamp/provisioner
+    container_name: provisioner
+    working_dir: /
+    command: java -jar app.jar
+    ports:
+      - "9090:9090"
+    depends_on:
+        - mariadb
+        - cassandra
+        - identity
+        - activemq
+    networks:
+        - fineract
+
+  office:
+    build:
+      context: ../../office
+    image: bootcamp/office
+    container_name: office
+    working_dir: /
+    command: java -jar app.jar
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mariadb
+      - cassandra
+      - identity
+      - activemq
+      - discovery
+    networks:
+      - fineract
+
+  customer:
+    build:
+      context: ../../customer
+    image: bootcamp/customer
+    container_name: customer
+    working_dir: /
+    command: java -jar app.jar
+    ports:
+      - "8083:8083"
+    depends_on:
+      - mariadb
+      - cassandra
+      - identity
+      - activemq
+      - discovery
+    networks:
+      - fineract
+
+  accounting:
+    build:
+      context: ../../accounting
+    image: bootcamp/accounting
+    container_name: accounting
+    working_dir: /
+    command: java -jar app.jar
+    ports:
+      - "8084:8084"
+    depends_on:
+      - mariadb
+      - cassandra
+      - identity
+      - activemq
+      - discovery
+    networks:
+      - fineract
+
+  portfolio:
+    build:
+      context: ../../portfolio
+    image: bootcamp/portfolio
+    container_name: portfolio
+    working_dir: /
+    command: java -jar app.jar
+    ports:
+      - "8085:8085"
+    depends_on:
+      - mariadb
+      - cassandra
+      - identity
+      - accounting
+      - activemq
+      - discovery
+    networks:
+      - fineract
+
+  fims-web-app:
+    build:
+      context: ../../fims-web-app
+    image: bootcamp/fims-web-app
+    container_name: fims-web-app
+    working_dir: /app
+    command: sh -c 'npm run runDocker;'
+    ports:
+      - "4200:4200"
+    depends_on:
+      - identity
+      - accounting
+      - office
+      - customer
+      - discovery
+      - portfolio
+      - provisioner
+      - activemq
+    networks:
+      - fineract
+
+networks:
+  fineract:
