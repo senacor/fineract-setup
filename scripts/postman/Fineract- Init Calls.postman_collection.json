@@ -1,0 +1,688 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Fineract: Init Calls",
+		"_postman_id": "60c7321f-514e-42c8-7174-f0d6572dbc99",
+		"description": "Collection to initialize tenant",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "01. Get token from system user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"rootUserToken\", jsonData.token);",
+							"",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://{{provisionerUrl}}/api/provisioner/v1/auth/token?grant_type=password&client_id={{client_id}}&username={{rootUser}}&password={{rootUserPassword}}",
+				"method": "POST",
+				"header": [],
+				"body": {},
+				"description": "1. Get Token from System-User"
+			},
+			"response": []
+		},
+		{
+			"name": "02. Create first tenant",
+			"request": {
+				"url": "http://{{provisionerUrl}}/provisioner/v1/tenants",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{rootUserToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{rootUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"identifier\": \"{{tenantIdentifier}}\",\n\t\"name\": \"Senacor BITC\",\n\t\"description\": \"Spielwiese\",\n\t\"cassandraConnectionInfo\": {\n\t\t\"clusterName\": \"datacenter1\",\n\t\t\"contactPoints\": \"cassandra:9042\",\n\t\t\"keyspace\": \"fineract_demo\",\n\t\t\"replicationType\": \"Simple\",\n\t\t\"replicas\": \"3\"\n\t},\n\t\"databaseConnectionInfo\": {\n\t\t\"driverClass\": \"org.mariadb.jdbc.Driver\",\n\t\t\"databaseName\": \"fineract_demo\",\n\t\t\"host\": \"mariadb\",\n\t\t\"port\": \"3306\",\n\t\t\"user\": \"root\",\n\t\t\"password\": \"mysql\"\n\t}\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "03.1 Create identity-v1 application",
+			"request": {
+				"url": "http://{{provisionerUrl}}/provisioner/v1/applications",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{rootUserToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{rootUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"identity-v1\",\n\t\"description\": \"Identity Service\",\n\t\"vendor\": \"Apache Fineract\",\n\t\"homepage\": \"http://52.28.160.133:8081/identity/v1\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "03.2 Create Identity Service for Tenant",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"antonyUserPassword\", jsonData.adminPassword);",
+							"",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://{{provisionerUrl}}/provisioner/v1/tenants/senacor-bitc/identityservice",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{rootUserToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{rootUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"identity-v1\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "03.3 Assign Identity for Tenant",
+			"request": {
+				"url": "http://{{provisionerUrl}}/provisioner/v1/tenants/senacor-bitc/applications",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{rootUserToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{rootUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n\t{\n\t\t\"name\": \"identity-v1\"\n\t}\n]"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "04.1 Create office-v1 application",
+			"request": {
+				"url": "http://{{provisionerUrl}}/provisioner/v1/applications",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{rootUserToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{rootUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"office-v1\",\n\t\"description\": \"Office Service\",\n\t\"vendor\": \"Apache Fineract\",\n\t\"homepage\": \"http://office:8082/office/v1\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "04.2 Assign Office for Tenant copy",
+			"request": {
+				"url": "http://{{provisionerUrl}}/provisioner/v1/tenants/senacor-bitc/applications",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{rootUserToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{rootUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n\t{\n\t\t\"name\": \"office-v1\"\n\t}\n]"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "05.1 Create customer-v1 application",
+			"request": {
+				"url": "http://{{provisionerUrl}}/provisioner/v1/applications",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{rootUserToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{rootUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"customer-v1\",\n\t\"description\": \"Customer Service\",\n\t\"vendor\": \"Apache Fineract\",\n\t\"homepage\": \"http://customer:8083/customer/v1\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "05.2 Assign customer for Tenant",
+			"request": {
+				"url": "http://{{provisionerUrl}}/provisioner/v1/tenants/senacor-bitc/applications",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{rootUserToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{rootUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n\t{\n\t\t\"name\": \"customer-v1\"\n\t}\n]"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "06.1 Create accounting-v1 application",
+			"request": {
+				"url": "http://{{provisionerUrl}}/provisioner/v1/applications",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{rootUserToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{rootUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"accounting-v1\",\n\t\"description\": \"Identity Service\",\n\t\"vendor\": \"Apache Fineract\",\n\t\"homepage\": \"http://accounting:8084/accounting/v1\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "06.2 Assign accounting for Tenant",
+			"request": {
+				"url": "http://{{provisionerUrl}}/provisioner/v1/tenants/senacor-bitc/applications",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{rootUserToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{rootUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n\t{\n\t\t\"name\": \"accounting-v1\"\n\t}\n]"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "07.1 Create portfolio-v1 application",
+			"request": {
+				"url": "http://{{provisionerUrl}}/provisioner/v1/applications",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{rootUserToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{rootUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"portfolio-v1\",\n\t\"description\": \"Portfolio Service\",\n\t\"vendor\": \"Apache Fineract\",\n\t\"homepage\": \"http://portfolio:8085/portfolio/v1\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "07.2 Assign portfolio for Tenant",
+			"request": {
+				"url": "http://{{provisionerUrl}}/provisioner/v1/tenants/senacor-bitc/applications",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{rootUserToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{rootUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n\t{\n\t\t\"name\": \"portfolio-v1\"\n\t}\n]"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "05. Login Antony",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"antonyToken\", jsonData.accessToken);",
+							"",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://{{identityUrl}}/identity/v1/token?grant_type=password&username=antony&password={{antonyUserPassword}}",
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "05. Change Antony Password",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Status code is 202\"] = responseCode.code === 202;",
+							"",
+							"postman.setEnvironmentVariable(\"antonyUserPassword\", \"dGVzdA==\");",
+							"",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://{{identityUrl}}/identity/v1/users/antony/password",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{antonyToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{antonyUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"password\": \"dGVzdA==\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "05. Login Antony with new password",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"antonyToken\", jsonData.accessToken);",
+							"",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://{{identityUrl}}/identity/v1/token?grant_type=password&username={{antonyUser}}&password={{antonyUserPassword}}",
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "07 Create Fims Role",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Status code is 202\"] = responseCode.code === 202;",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://{{identityUrl}}/identity/v1/roles",
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{antonyUser}}",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "{{antonyToken}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"identifier\":\"fims_administrator\",\"permissions\":[{\"permittableEndpointGroupIdentifier\":\"identity__v1__roles\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]},{\"permittableEndpointGroupIdentifier\":\"identity__v1__self\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]},{\"permittableEndpointGroupIdentifier\":\"office__v1__employees\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]},{\"permittableEndpointGroupIdentifier\":\"customer__v1__task\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]},{\"permittableEndpointGroupIdentifier\":\"catalog__v1__catalog\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]},{\"permittableEndpointGroupIdentifier\":\"identity__v1__users\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]},{\"permittableEndpointGroupIdentifier\":\"accounting__v1__journal\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]},{\"permittableEndpointGroupIdentifier\":\"office__v1__offices\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]},{\"permittableEndpointGroupIdentifier\":\"customer__v1__customer\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]},{\"permittableEndpointGroupIdentifier\":\"accounting__v1__ledger\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]},{\"permittableEndpointGroupIdentifier\":\"portfolio__v1__case\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]},{\"permittableEndpointGroupIdentifier\":\"portfolio__v1__products\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]},{\"permittableEndpointGroupIdentifier\":\"office__v1__self\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]},{\"permittableEndpointGroupIdentifier\":\"accounting__v1__account\",\"allowedOperations\":[\"READ\",\"CHANGE\",\"DELETE\"]}]}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "07. Create FIMS User",
+			"request": {
+				"url": "http://{{identityUrl}}/identity/v1/users",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{antonyToken}}",
+						"description": ""
+					},
+					{
+						"key": "User",
+						"value": "{{antonyUser}}",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "X-Tenant-Identifier",
+						"value": "{{tenantIdentifier}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"identifier\": \"fims\",\n\t\"role\": \"fims_administrator\",\n\t\"password\": \"cEBzJHcwciY=\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
